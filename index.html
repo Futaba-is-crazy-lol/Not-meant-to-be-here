@@ -94,6 +94,13 @@
             from { opacity: 1; }
             to { opacity: 0; }
         }
+        .fade-in {
+            animation: fadeIn 0.3s forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -125,7 +132,7 @@
                 choices: [
                     { text: "Too?", next: "Parties" },
                     { text: "Stay silent", next: "silent" },
-                    { text: "Exit and go to URL 1", next: "exit1" },
+                    
                 ]
             },
             Roslyn: {
@@ -149,7 +156,7 @@
             },
             silent: {
                 text: "I've said all I can. Please, go before they find you here!...Their Coming! You have to leave! Quickly! G-\n\nThe voice cuts off as the static becomes too loud.",
-                choices: [{ text: "[ERROR FIX, REBOOTING...]", next: "exit" }]
+                choices: [{ text: "[ERROR FIX, REBOOTING...]", next: "exit1" }]
             }
         };
 
@@ -176,20 +183,24 @@
         }
 
         function showChoices(choices) {
-            options.innerHTML = "";
-            choices.forEach(choice => {
-                const button = document.createElement("button");
-                button.textContent = choice.text;
-                button.onclick = () => {
-                    // Add fade-out animation before clearing options
-                    options.classList.add("fade-out");
-                    setTimeout(() => {
-                        options.innerHTML = ""; // Clear options after fade-out
-                        advanceStory(choice.next); // Proceed with the story
-                    }, 300); // Match the fade-out duration
-                };
-                options.appendChild(button);
-            });
+            options.innerHTML = ""; // Clear previous options
+            options.classList.remove("fade-in"); // Reset fade-in
+            setTimeout(() => {
+                options.classList.add("fade-in"); // Add fade-in class
+                choices.forEach(choice => {
+                    const button = document.createElement("button");
+                    button.textContent = choice.text;
+                    button.onclick = () => {
+                        // Fade out the options
+                        options.classList.add("fade-out");
+                        setTimeout(() => {
+                            options.innerHTML = ""; // Clear options after fade-out
+                            advanceStory(choice.next); // Proceed with the story
+                        }, 300); // Wait for fade-out to finish
+                    };
+                    options.appendChild(button);
+                });
+            }, 100); // Delay the fade-in to allow clearing of old options
         }
 
         function advanceStory(nextPart) {
