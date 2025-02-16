@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Chat Story</title>
+    <style>
+        body {
+            text-align: center;
+            background-color: black;
+            color: #783732;
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        #chat-container {
+            position: relative;
+            width: 80%;
+            height: 80vh;
+            background: black;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(120, 55, 50, 0.5);
+            overflow-y: auto;
+            filter: contrast(1.2) brightness(0.8);
+            border: 2px solid #783732;
+            scroll-behavior: smooth;
+        }
+        #chat-container::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                transparent, transparent 3px, rgba(120, 55, 50, 0.2) 4px
+            );
+            opacity: 0.2;
+            pointer-events: none;
+        }
+        @keyframes flicker {
+            0% { opacity: 0.9; }
+            50% { opacity: 1; }
+            100% { opacity: 0.9; }
+        }
+        #chat-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(120, 55, 50, 0.05);
+            animation: flicker 0.2s infinite alternate;
+            pointer-events: none;
+        }
+        .message {
+            padding: 8px;
+            margin: 5px 0;
+            font-size: 1.2em;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .user { color: #783732; text-align: right; }
+        .npc { color: #783732; text-align: left; }
+        .options button {
+            display: block;
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px;
+            border: none;
+            background: black;
+            color: #783732;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            border: 2px solid #783732;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+        }
+        .options button:hover {
+            background: #50231d;
+            transform: scale(1.05);
+        }
+        .fade-out {
+            animation: fadeOut 0.3s forwards;
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat"></div>
+        <div id="options" class="options"></div>
+    </div>
+
+    <script>
+        const chat = document.getElementById("chat");
+        const options = document.getElementById("options");
+
+        const redirects = {
+            exit1: "https://roslynbootheprofilehub.carrd.co/",
+            exit2: "https://thejesterfoundyou.straw.page/"
+        };
+
+        const story = {
+            start: {
+                text: "[SYSTEM BOOTING...]\n\n[ERROR DETECTED, UNKNOWN USER... ]\n\n[ ATTEMPTING TO FIX, PLEASE STAND BY ] \n\n'Please, I beg you to listen to what I have to say!'",
+                choices: [
+                    { text: "Who are you?", next: "Blanche" },
+                    { text: "Who's they?", next: "Roslyn" },
+                    { text: "Ignore", next: "ignore" }
+                ]
+            },
+            Blanche: {
+                text: "Who I am doesn't matter... but I can't stay long. Please... Don't trust the Jester. They speak nothing but lies. Do not let them fool you too.",
+                choices: [
+                    { text: "Too?", next: "Parties" },
+                    { text: "Stay silent", next: "silent" },
+                    { text: "Exit and go to URL 1", next: "exit1" },
+                ]
+            },
+            Roslyn: {
+                text: "T-The Jester! I...I don't have much time before they hand me! Please! don't let them fool you too!",
+                choices: [
+                    { text: "What do you mean?", next: "apology" },
+                    { text: "Stay silent", next: "silent" }
+                ]
+            },
+            ignore: {
+                text: "You ignore the voice. A deep static hum fills the void, mixed with what sounds like screams and loud cackling then suddenly..., silence. You'll never know what they wanted to tell you...",
+                choices: [ { text: "Exit and go to URL 2", next: "exit2" }]
+            },
+            apology: {
+                text: "I...oh god...their coming closer! L-look, you have to f-find away to stop them! I-i d-done all I can!",
+                choices: [{ text: "Stay silent", next: "silent" }]
+            },
+            Parties: {
+                text: "'T-the others! groups they've travled with! I...I can't tell you much more!'",
+                choices: [{ text: "Stay silent", next: "silent" }]
+            },
+            silent: {
+                text: "I've said all I can. Please, go before they find you here!...Their Coming! You have to leave! Quickly! G-\n\nThe voice cuts off as the static becomes too loud.",
+                choices: [{ text: "[ERROR FIX, REBOOTING...]", next: "exit" }]
+            }
+        };
+
+        function typeText(element, text, speed = 50, callback = null) {
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                    chat.scrollTop = chat.scrollHeight;
+                } else if (callback) {
+                    callback();
+                }
+            }
+            type();
+        }
+
+        function displayMessage(text, sender, callback = null) {
+            const message = document.createElement("div");
+            message.className = `message ${sender}`;
+            chat.appendChild(message);
+            typeText(message, text, 30, callback);
+        }
+
+        function showChoices(choices) {
+            options.innerHTML = "";
+            choices.forEach(choice => {
+                const button = document.createElement("button");
+                button.textContent = choice.text;
+                button.onclick = () => {
+                    // Add fade-out animation before clearing options
+                    options.classList.add("fade-out");
+                    setTimeout(() => {
+                        options.innerHTML = ""; // Clear options after fade-out
+                        advanceStory(choice.next); // Proceed with the story
+                    }, 300); // Match the fade-out duration
+                };
+                options.appendChild(button);
+            });
+        }
+
+        function advanceStory(nextPart) {
+            if (redirects[nextPart]) {
+                window.location.href = redirects[nextPart];
+                return;
+            }
+            if (nextPart === "exit") {
+                exitAndRedirect();
+                return;
+            }
+
+            const part = story[nextPart];
+            displayMessage(part.text, "npc", () => {
+                if (part.choices.length > 0) {
+                    showChoices(part.choices);
+                } else {
+                    options.innerHTML = ""; // End of story
+                }
+            });
+        }
+
+        function exitAndRedirect() {
+            window.location.href = redirects.exit1;  // Default exit URL
+        }
+
+        function startStory() {
+            displayMessage(story.start.text, "npc", () => {
+                showChoices(story.start.choices);
+            });
+        }
+
+        startStory();
+    </script>
+</body>
+</html>
