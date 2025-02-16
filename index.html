@@ -204,6 +204,7 @@
         }
 
         function advanceStory(nextPart) {
+            console.log("Next part:", nextPart);  // Debug log
             if (redirects[nextPart]) {
                 window.location.href = redirects[nextPart];
                 return;
@@ -214,6 +215,7 @@
             }
 
             const part = story[nextPart];
+            console.log("Current story section:", part);  // Debug log
             displayMessage(part.text, "npc", () => {
                 if (part.choices.length > 0) {
                     showChoices(part.choices);
